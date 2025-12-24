@@ -2,14 +2,14 @@ version: "3.8"
 
 services:
   nginx:
-    build: ./srcs/nginx
+    build: ./requirements/nginx
     container_name: nginx
     depends_on:
       - wordpress
     ports:
       - "443:443"
     env_file:
-      - .env
+      - ../secrets/.env
     volumes:
       - wordpress_data:/var/www/html
     networks:
@@ -17,12 +17,12 @@ services:
     restart: always
 
   wordpress:
-    build: ./srcs/wordpress
+    build: ./requirements/wordpress
     container_name: wordpress
     depends_on:
       - mariadb
     env_file:
-      - .env
+      - ../secrets/.env
     volumes:
       - wordpress_data:/var/www/html
     networks:
@@ -30,10 +30,10 @@ services:
     restart: always
 
   mariadb:
-    build: ./srcs/mariadb
+    build: ./requirements/mariadb
     container_name: mariadb
     env_file:
-      - .env
+      - ../secrets/.env
     volumes:
       - mariadb_data:/var/lib/mysql
     networks:
