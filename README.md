@@ -171,6 +171,7 @@ This approach gives us the best of both worlds. Docker manages the volumes (they
 - Understanding Docker Volumes: https://docs.docker.com/storage/volumes/
 - NGINX Reverse Proxy Configuration: https://docs.nginx.com/nginx/admin-guide/web-server/reverse-proxy/
 - WordPress with Docker: https://docs.docker.com/samples/wordpress/
+- WordPress with Docker: https://www.youtube.com/watch?v=mKdwkV5p1xg
 - TLS/SSL Certificate Generation with OpenSSL
 
 ### AI Usage
