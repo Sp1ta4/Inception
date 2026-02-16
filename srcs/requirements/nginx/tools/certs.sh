@@ -7,6 +7,8 @@ fi
 
 echo "Generating TLS certificate..."
 
+mkdir -p /etc/ssl/private /etc/ssl/certs
+
 openssl req -x509 -nodes \
     -days 365 \
     -newkey rsa:2048 \
@@ -14,4 +16,7 @@ openssl req -x509 -nodes \
     -out /etc/ssl/certs/certificate.crt \
     -subj "/C=AM/ST=Yerevan/L=Yerevan/O=42/OU=Inception/CN=${DOMAIN_NAME}"
 
-echo "TLS certificate generated"
+chmod 600 /etc/ssl/private/private.key
+chmod 644 /etc/ssl/certs/certificate.crt
+
+echo "TLS certificate generated successfully"

@@ -9,9 +9,9 @@ services:
     ports:
       - "443:443"
     env_file:
-      - ../secrets/.env
+      - ./secrets/.env
     volumes:
-      - wordpress_data:/var/www/html
+      - wordpress_data:/var/www/html:ro
     networks:
       - inception
     restart: always
@@ -22,7 +22,7 @@ services:
     depends_on:
       - mariadb
     env_file:
-      - ../secrets/.env
+      - ./secrets/.env
     volumes:
       - wordpress_data:/var/www/html
     networks:
@@ -33,7 +33,7 @@ services:
     build: ./requirements/mariadb
     container_name: mariadb
     env_file:
-      - ../secrets/.env
+      - ./secrets/.env
     volumes:
       - mariadb_data:/var/lib/mysql
     networks:
@@ -48,5 +48,16 @@ networks:
 volumes:
   wordpress_data:
     name: wordpress_data
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${DATA_PATH}/wordpress
+
   mariadb_data:
     name: mariadb_data
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${DATA_PATH}/mariadb
