@@ -13,10 +13,10 @@ setup:
 	@echo "Setting up data directories..."
 	@mkdir -p $(DATA_PATH)/wordpress
 	@mkdir -p $(DATA_PATH)/mariadb
-	@chmod 755 $(DATA_PATH)
-	@chmod 755 $(DATA_PATH)/wordpress
-	@chmod 755 $(DATA_PATH)/mariadb
-	@chown -R $(USER):$(USER) $(DATA_PATH)
+	@sudo chmod 755 $(DATA_PATH) 2>/dev/null || true
+	@sudo chmod 755 $(DATA_PATH)/wordpress 2>/dev/null || true
+	@sudo chmod 755 $(DATA_PATH)/mariadb 2>/dev/null || true
+	@sudo chown -R $(USER):$(USER) $(DATA_PATH) 2>/dev/null || true
 	@echo "Data directories created at $(DATA_PATH)"
 
 up: setup
@@ -65,25 +65,27 @@ status:
 
 clean: down
 	@echo "Cleaning Docker system..."
-	@docker system prune -af
+	@sudo docker system prune -af
 
 clean-volumes:
 	@echo "Removing volumes..."
-	@docker volume rm wordpress_data mariadb_data 2>/dev/null || true
+	@sudo docker volume rm wordpress_data mariadb_data 2>/dev/null || true
 
 clean-data:
+	@echo "Fixing permissions..."
+	@sudo chown -R $(USER):$(USER) $(DATA_PATH) 2>/dev/null || true
 	@echo "Removing data from $(DATA_PATH)..."
 	@if [ -d "$(DATA_PATH)/wordpress" ]; then \
-		rm -rf $(DATA_PATH)/wordpress/*; \
+		sudo rm -rf $(DATA_PATH)/wordpress/*; \
 	fi
 	@if [ -d "$(DATA_PATH)/mariadb" ]; then \
-		rm -rf $(DATA_PATH)/mariadb/*; \
+		sudo rm -rf $(DATA_PATH)/mariadb/*; \
 	fi
 	@echo "Data directories cleaned"
 
 fclean: down clean-volumes clean-data
 	@echo "Full clean: removing system and data..."
-	@docker system prune -af --volumes
+	@sudo docker system prune -af --volumes
 
 re: fclean all
 

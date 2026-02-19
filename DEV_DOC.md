@@ -20,7 +20,7 @@ Install the following software on your system:
 - text editor with YAML/Dockerfile syntax highlighting
 
 **System requirements:**
-- Linux operating system (tested on Ubuntu 20.04/22.04)
+- Linux operating system (tested on Ubuntu 20.04/22.04 and Debian)
 - Minimum 2GB RAM
 - Minimum 10GB free disk space
 - User must be in the docker group to run Docker without sudo
@@ -47,7 +47,6 @@ Inception/
 ├── DEV_DOC.md
 └── srcs/
     ├── docker-compose.yml
-    ├── .env (created from secrets/.env)
     ├── secrets/
     │   └── .env
     └── requirements/
@@ -60,8 +59,6 @@ Inception/
         │       └── start.sh
         ├── wordpress/
         │   ├── Dockerfile
-        │   ├── conf/
-        │   │   └── www.conf (PHP-FPM pool config)
         │   └── tools/
         │       └── wp_setup.sh
         └── mariadb/

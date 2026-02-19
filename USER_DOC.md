@@ -72,10 +72,10 @@ docker restart mariadb
 
 Open your web browser and navigate to:
 ```
-https://codeex.42.fr
+https://<DOMAIN_NAME>.42.fr
 ```
 
-Replace `codeex` with your actual username.
+Replace `DOMAIN_NAME` with your actual username.
 
 **Note about the security warning:** You will see a warning about an untrusted certificate. This is normal because we use a self-signed certificate for local development. Click "Advanced" or "Continue to site" to proceed.
 
@@ -83,7 +83,7 @@ Replace `codeex` with your actual username.
 
 To manage your WordPress site, go to:
 ```
-https://codeex.42.fr/wp-admin
+https://DOMAIN_NAME.42.fr/wp-admin
 ```
 
 Log in with your administrator credentials (see Credentials section below).
@@ -186,7 +186,7 @@ To exit the logs view, press `Ctrl+C`.
 
 **Check if NGINX is responding:**
 ```bash
-curl -k -I https://codeex.42.fr
+curl -k -I https://DOMAIN_NAME.42.fr
 ```
 
 You should see `HTTP/1.1 200 OK` or `HTTP/1.1 302 Found`.
@@ -214,8 +214,8 @@ You should see three containers with status "Up".
 
 Your data is stored in:
 ```
-/home/codeex/data/wordpress/  - WordPress files and uploads
-/home/codeex/data/mariadb/    - Database files
+/home/DOMAIN_NAME/data/wordpress/  - WordPress files and uploads
+/home/DOMAIN_NAME/data/mariadb/    - Database files
 ```
 
 To check if data exists:
@@ -237,12 +237,12 @@ ls -lh ~/data/mariadb/
 
 2. Check if the domain is in your hosts file:
 ```bash
-   grep codeex.42.fr /etc/hosts
+   grep DOMAIN_NAME.42.fr /etc/hosts
 ```
    
    If not present, add it:
 ```bash
-   echo "127.0.0.1    codeex.42.fr" | sudo tee -a /etc/hosts
+   echo "127.0.0.1    DOMAIN_NAME.42.fr" | sudo tee -a /etc/hosts
 ```
 
 3. Check NGINX logs:

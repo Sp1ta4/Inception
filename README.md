@@ -104,7 +104,7 @@ sudo chown -R $(whoami):$(whoami) ~/data
 
 The infrastructure consists of three containers connected through a private Docker network. NGINX listens on port 443 (HTTPS) and acts as the entry point, forwarding PHP requests to WordPress via FastCGI on port 9000. WordPress connects to MariaDB on port 3306 for database operations.
 
-Data persistence is handled by two Docker volumes that store their data in `/home/ggevorgi/data/wordpress` and `/home/ggevorgi/data/mariadb` on the host machine.
+Data persistence is handled by two Docker volumes that store their data in `/home/<username>/data/wordpress` and `/home/<username>/data/mariadb` on the host machine.
 
 ### NGINX Container
 
