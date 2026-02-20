@@ -32,8 +32,9 @@ wp core install \
 
 wp user create \
     $WP_USER $WP_USER_EMAIL \
-    --role=Subscriber \
+    --role=author \
     --user_pass=$WP_USER_PASSWORD \
+    --allow-root
 
 echo "WordPress installed successfully"
 
