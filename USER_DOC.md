@@ -1,352 +1,298 @@
-# User Documentation
+# Inception - User Guide
 
-This document provides instructions for end users and administrators on how to use and manage the Inception infrastructure.
+Welcome! This guide will help you use and manage your WordPress website running on Docker.
 
-## What Services Are Provided
+## Quick Start
 
-The infrastructure consists of three main services working together to provide a complete WordPress website:
+### Starting Your Website
 
-**NGINX Web Server**
-- Serves your website over HTTPS (secure connection)
-- Handles all incoming web traffic on port 443
-- Provides TLS encryption for security
-- Acts as a reverse proxy, forwarding PHP requests to WordPress
-
-**WordPress Content Management System**
-- Allows you to create and manage website content
-- Provides an admin panel for site management
-- Runs with PHP-FPM for processing dynamic content
-- Stores posts, pages, media, and site settings
-
-**MariaDB Database**
-- Stores all WordPress data (posts, users, settings, etc.)
-- Handles all database operations
-- Ensures data persistence and integrity
-
-All services run in isolated Docker containers and communicate through a private network. Your data is stored persistently on the host machine, so it survives container restarts.
-
-## Starting and Stopping the Project
-
-### Starting the Infrastructure
-
-To start all services, run:
+To start everything, simply run:
 ```bash
 make
 ```
 
-This command will:
-- Create necessary data directories
-- Build Docker images if needed
-- Start all three containers
-- Generate TLS certificates if they don't exist
-- Install and configure WordPress automatically
+Wait 1-2 minutes for the first startup. Your website will be available at:
+```
+https://your-login.42.fr
+```
 
-The first start takes longer (1-2 minutes) because it downloads base images and installs WordPress. Subsequent starts are much faster.
+(Replace `your-login` with your actual username)
 
-### Stopping the Infrastructure
+### Stopping Your Website
 
-To stop all services while keeping your data:
+To stop all services:
 ```bash
 make down
 ```
 
-This stops the containers but preserves all your data, settings, and content.
+Don't worry - this keeps all your content and settings safe!
 
-### Restarting Services
+## Accessing Your Website
 
-If you need to restart the services:
-```bash
-make restart
+### View Your Website
+
+Open your browser and go to:
+```
+https://your-login.42.fr
 ```
 
-Or restart individual services:
-```bash
-docker restart nginx
-docker restart wordpress
-docker restart mariadb
+**You'll see a security warning** - this is normal! We use a self-signed certificate for development. Click "Advanced" → "Continue to site" to proceed.
+
+### Admin Panel (Dashboard)
+
+To manage your site, go to:
+```
+https://your-login.42.fr/wp-admin
 ```
 
-## Accessing the Website
+Log in with your admin username and password (found in `srcs/secrets/.env` file).
 
-### Accessing the Public Site
+**What you can do in the admin panel:**
+- Write blog posts and create pages
+- Upload photos and videos
+- Change your site's look (themes)
+- Add new features (plugins)
+- Create new users
+- Change site settings
 
-Open your web browser and navigate to:
-```
-https://<DOMAIN_NAME>.42.fr
-```
+## Your Login Information
 
-Replace `DOMAIN_NAME` with your actual username.
-
-**Note about the security warning:** You will see a warning about an untrusted certificate. This is normal because we use a self-signed certificate for local development. Click "Advanced" or "Continue to site" to proceed.
-
-### Accessing the Administration Panel
-
-To manage your WordPress site, go to:
-```
-https://DOMAIN_NAME.42.fr/wp-admin
-```
-
-Log in with your administrator credentials (see Credentials section below).
-
-From the admin panel you can:
-- Create and edit posts and pages
-- Upload media (images, videos, documents)
-- Install themes and plugins
-- Manage users
-- Configure site settings
-- View site statistics
-
-## Managing Credentials
-
-### Location of Credentials
-
-All credentials are stored in the environment file:
+All your passwords are stored in:
 ```
 srcs/secrets/.env
 ```
 
-**Important:** This file should never be committed to version control. It's included in `.gitignore` to prevent accidental exposure.
+**You have two users:**
 
-### Available Credentials
+1. **Administrator** (you) - Full control
+   - Username: Check `WP_ADMIN_USER` in .env
+   - Password: Check `WP_ADMIN_PASSWORD` in .env
 
-**WordPress Administrator**
-- Username: Value of `WP_ADMIN_USER`
-- Password: Value of `WP_ADMIN_PASSWORD`
-- Email: Value of `WP_ADMIN_EMAIL`
-- Purpose: Full access to WordPress admin panel
+2. **Author** (second user) - Can write and publish posts
+   - Username: Check `WP_USER` in .env
+   - Password: Check `WP_USER_PASSWORD` in .env
 
-**WordPress Editor**
-- Username: Value of `WP_USER`
-- Password: Value of `WP_USER_PASSWORD`
-- Email: Value of `WP_USER_EMAIL`
-- Purpose: Can create and edit posts but has limited admin access
+### Changing Your Password
 
-**Database Root User**
-- Username: `root`
-- Password: Value of `MYSQL_ROOT_PASSWORD`
-- Purpose: Full database administration (rarely needed)
+**Option 1: Through WordPress Dashboard**
+1. Log in to `/wp-admin`
+2. Go to Users → Your Profile
+3. Scroll down to "New Password"
+4. Enter new password and save
 
-**Database WordPress User**
-- Username: Value of `MYSQL_USER`
-- Password: Value of `MYSQL_PASSWORD`
-- Purpose: WordPress uses this to connect to the database
-
-### Changing Credentials
-
-To change any credentials:
-
-1. Stop the services:
+**Option 2: Reset via command line**
 ```bash
-   make down
+docker exec wordpress wp user update YOUR_USERNAME --user_pass=NEW_PASSWORD --allow-root
 ```
 
-2. Edit `srcs/secrets/.env` with your new credentials
+## Basic Commands
 
-3. For database credentials, you'll need to rebuild:
-```bash
-   make fclean
-   make
-```
-
-4. For WordPress user credentials, you can change them through the admin panel or rebuild
-
-**Warning:** Changing database credentials on a running system requires careful migration. It's easier to do this before first deployment.
-
-## Checking Service Health
-
-### Quick Status Check
-
-View the status of all containers and volumes:
+### Check if Everything is Running
 ```bash
 make status
 ```
 
-This shows:
-- Running containers and their uptime
-- Available volumes
-- Data directory contents
+This shows you:
+- Which containers are running
+- How long they've been up
+- Your data storage locations
 
-### Viewing Service Logs
-
-To see what's happening in real-time:
+### View What's Happening (Logs)
 ```bash
 make logs
 ```
 
-To view logs for a specific service:
+Press `Ctrl+C` to stop viewing logs.
+
+**See logs for just one service:**
 ```bash
-make logs-nginx
-make logs-wordpress
-make logs-mariadb
+make logs-nginx      # Web server
+make logs-wordpress  # Your WordPress site
+make logs-mariadb    # Database
 ```
 
-To exit the logs view, press `Ctrl+C`.
-
-### Checking Individual Services
-
-**Check if NGINX is responding:**
+### Restart Everything
 ```bash
-curl -k -I https://DOMAIN_NAME.42.fr
+make restart
 ```
 
-You should see `HTTP/1.1 200 OK` or `HTTP/1.1 302 Found`.
+## Troubleshooting
 
-**Check if MariaDB is running:**
-```bash
-docker exec mariadb mysqladmin ping -h localhost --silent && echo "MariaDB OK"
-```
+### Problem: Can't Access the Website
 
-**Check if WordPress is installed:**
-```bash
-docker exec wordpress wp core version --allow-root
-```
-
-This shows the WordPress version number.
-
-**Check if containers are running:**
+**Check 1:** Are the containers running?
 ```bash
 docker ps
 ```
 
-You should see three containers with status "Up".
+You should see three containers: `nginx`, `wordpress`, and `mariadb`.
 
-### Verifying Data Persistence
-
-Your data is stored in:
-```
-/home/DOMAIN_NAME/data/wordpress/  - WordPress files and uploads
-/home/DOMAIN_NAME/data/mariadb/    - Database files
-```
-
-To check if data exists:
+**Check 2:** Is the domain configured?
 ```bash
-ls -lh ~/data/wordpress/
-ls -lh ~/data/mariadb/
+grep your-login.42.fr /etc/hosts
 ```
 
-## Common Issues and Solutions
-
-### Issue: Cannot access the website
-
-**Solution:**
-
-1. Check if all containers are running:
+If you don't see your domain, add it:
 ```bash
-   docker ps
+echo "127.0.0.1    your-login.42.fr" | sudo tee -a /etc/hosts
 ```
 
-2. Check if the domain is in your hosts file:
+**Check 3:** Try restarting
 ```bash
-   grep DOMAIN_NAME.42.fr /etc/hosts
-```
-   
-   If not present, add it:
-```bash
-   echo "127.0.0.1    DOMAIN_NAME.42.fr" | sudo tee -a /etc/hosts
+make restart
 ```
 
-3. Check NGINX logs:
+### Problem: "502 Bad Gateway" Error
+
+This means WordPress isn't responding. Fix it:
 ```bash
-   make logs-nginx
-```
-
-### Issue: 502 Bad Gateway
-
-This means NGINX cannot connect to WordPress.
-
-**Solution:**
-```bash
-# Check if WordPress is running
-docker ps | grep wordpress
-
-# Restart WordPress
 docker restart wordpress
-
-# Check logs
 make logs-wordpress
 ```
 
-### Issue: Forgot admin password
+Wait a minute and refresh your browser.
 
-**Solution:**
+### Problem: Forgot My Password
 
-You can reset it using WP-CLI:
+Reset it with this command:
 ```bash
-docker exec wordpress wp user update admin_username --user_pass=new_password --allow-root
+docker exec wordpress wp user update YOUR_USERNAME --user_pass=NEW_PASSWORD --allow-root
 ```
 
-Replace `admin_username` with your actual admin username.
+Replace `YOUR_USERNAME` with your admin username and `NEW_PASSWORD` with what you want.
 
-### Issue: Website is slow
+### Problem: Website is Slow
 
-**Solution:**
-
-1. Check container resource usage:
+Check what's using resources:
 ```bash
-   docker stats
+docker stats
 ```
 
-2. Check if database needs optimization:
+Press `Ctrl+C` to exit.
+
+## Backing Up Your Website
+
+### Create a Backup
 ```bash
-   docker exec mariadb mysqlcheck -u root -p --optimize --all-databases
-```
-   
-   Enter the root password when prompted.
-
-## Backup and Restore
-
-### Creating a Backup
-
-To backup your entire site:
-```bash
-# Stop containers
+# Stop the website
 make down
 
-# Create backup directory
+# Create backup folder with today's date
 mkdir -p ~/inception-backup-$(date +%Y%m%d)
 
-# Copy data
+# Copy everything important
 cp -r ~/data ~/inception-backup-$(date +%Y%m%d)/
 cp srcs/secrets/.env ~/inception-backup-$(date +%Y%m%d)/
 
-# Restart containers
+# Start the website again
 make up
 ```
 
-### Restoring from Backup
+Your backup is now in `~/inception-backup-YYYYMMDD/`
+
+### Restore from Backup
 ```bash
-# Stop containers
+# Stop the website
 make down
 
-# Restore data
+# Restore your files (replace YYYYMMDD with your backup date)
 cp -r ~/inception-backup-YYYYMMDD/data/* ~/data/
 cp ~/inception-backup-YYYYMMDD/.env srcs/secrets/.env
 
-# Start containers
+# Start the website
 make up
 ```
 
-## Security Recommendations
+## Understanding Your Setup
 
-**For Production Use:**
+Your WordPress website runs in three separate containers:
 
-1. Replace the self-signed certificate with a real SSL certificate (Let's Encrypt)
-2. Use strong, unique passwords for all accounts
-3. Keep WordPress, themes, and plugins updated
-4. Regularly backup your data
-5. Monitor logs for suspicious activity
-6. Consider using Docker secrets instead of environment variables
-7. Limit WordPress admin panel access to specific IP addresses
-8. Enable WordPress security plugins
-9. Use a firewall to restrict access to ports other than 443
+**NGINX** - The front door
+- Handles visitors coming to your site
+- Provides HTTPS security (the lock icon in browser)
+- Sends page requests to WordPress
 
-## Getting Help
+**WordPress** - Your website
+- Creates your web pages
+- Manages your content
+- Runs the admin dashboard
 
-If you encounter issues:
+**MariaDB** - Your database
+- Stores all your posts, comments, and settings
+- Like a filing cabinet for your website
 
+**All your data is saved here:**
+- `~/data/wordpress/` - Your website files and uploaded images
+- `~/data/mariadb/` - Your database files
+
+Even if you stop the containers, your data stays safe!
+
+## Useful Tips
+
+### Quick Health Check
+
+Test if your site is responding:
+```bash
+curl -k -I https://your-login.42.fr
+```
+
+You should see `HTTP/1.1 200 OK` or similar.
+
+### See WordPress Version
+```bash
+docker exec wordpress wp core version --allow-root
+```
+
+### Check Database Connection
+```bash
+docker exec mariadb mysqladmin ping -h localhost --silent && echo "Database OK"
+```
+
+## When You're Done
+
+### Keep Everything (Recommended)
+```bash
+make down
+```
+
+Your website stops, but all your content is saved.
+
+### Delete Everything (Clean Slate)
+```bash
+make fclean
+```
+
+**Warning:** This deletes ALL your content, posts, and settings! Only use this if you want to start completely fresh.
+
+### Start Fresh After fclean
+```bash
+make all
+```
+
+## Security Reminders
+
+🔒 **Important for your school project:**
+- Your admin username CANNOT contain: `admin`, `Admin`, `administrator`, or `Administrator`
+- Use strong, unique passwords
+- Never share your `.env` file (it contains all your passwords!)
+- The `.env` file should never be uploaded to Git
+
+## Need Help?
+
+**First steps:**
 1. Check the logs: `make logs`
-2. Verify services are running: `make status`
-3. Review the error messages carefully
-4. Consult the developer documentation (DEV_DOC.md) for technical details
-5. Check Docker documentation: https://docs.docker.com/
-6. Check WordPress support: https://wordpress.org/support/
+2. Look at the status: `make status`
+3. Try restarting: `make restart`
+
+**Still stuck?**
+- Check your error messages carefully
+- Look at the logs for specific services
+- Make sure all containers are running with `docker ps`
+
+**Resources:**
+- WordPress Help: https://wordpress.org/support/
+- Docker Docs: https://docs.docker.com/
+
+---
+
+**Remember:** Your data is persistent! Even if you stop containers or restart your computer, your WordPress content is safely stored in `~/data/`.

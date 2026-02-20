@@ -7,19 +7,25 @@ ENV_FILE = ./srcs/secrets/.env
 include $(ENV_FILE)
 export
 
-all: setup up
+all: setup volumes up
 
 setup:
 	@echo "Setting up data directories..."
-	@mkdir -p $(DATA_PATH)/wordpress
-	@mkdir -p $(DATA_PATH)/mariadb
-	@sudo chmod 755 $(DATA_PATH) 2>/dev/null || true
-	@sudo chmod 755 $(DATA_PATH)/wordpress 2>/dev/null || true
-	@sudo chmod 755 $(DATA_PATH)/mariadb 2>/dev/null || true
-	@sudo chown -R $(USER):$(USER) $(DATA_PATH) 2>/dev/null || true
+	@sudo mkdir -p $(DATA_PATH)/wordpress
+	@sudo mkdir -p $(DATA_PATH)/mariadb
+	@sudo chown -R $(USER):$(USER) $(DATA_PATH)
+	@sudo chmod -R 755 $(DATA_PATH)
 	@echo "Data directories created at $(DATA_PATH)"
 
-up: setup
+volumes:
+	@echo "Creating Docker volumes..."
+	@docker volume create wordpress_data 2>/dev/null || true
+	@docker volume create mariadb_data 2>/dev/null || true
+	@echo "Fixing volume permissions..."
+	@sudo chmod -R 755 /var/lib/docker/volumes/mariadb_data || true
+	@sudo chmod -R 755 /var/lib/docker/volumes/wordpress_data || true
+
+up:
 	@echo "Starting containers..."
 	$(DOCKER_COMPOSE) -f $(COMPOSE_FILE) --env-file $(ENV_FILE) up -d --build --remove-orphans
 
@@ -62,36 +68,39 @@ status:
 	else \
 		echo "Data directory does not exist: $(DATA_PATH)"; \
 	fi
+	@echo ""
+	@echo "=== Volume Permissions ==="
+	@sudo ls -la /var/lib/docker/volumes/ | grep -E "mariadb|wordpress" || true
 
 clean: down
 	@echo "Cleaning Docker system..."
-	@sudo docker system prune -af
+	@docker system prune -af
 
-clean-volumes:
-	@echo "Removing volumes..."
-	@sudo docker volume rm wordpress_data mariadb_data 2>/dev/null || true
-
-clean-data:
-	@echo "Fixing permissions..."
-	@sudo chown -R $(USER):$(USER) $(DATA_PATH) 2>/dev/null || true
-	@echo "Removing data from $(DATA_PATH)..."
-	@if [ -d "$(DATA_PATH)/wordpress" ]; then \
-		sudo rm -rf $(DATA_PATH)/wordpress/*; \
-	fi
-	@if [ -d "$(DATA_PATH)/mariadb" ]; then \
-		sudo rm -rf $(DATA_PATH)/mariadb/*; \
-	fi
-	@echo "Data directories cleaned"
-
-fclean: down clean-volumes clean-data
-	@echo "Full clean: removing system and data..."
-	@sudo docker system prune -af --volumes
+fclean:
+	@echo "=== Full Clean ==="
+	@echo "Stopping containers..."
+	@$(DOCKER_COMPOSE) -f $(COMPOSE_FILE) --env-file $(ENV_FILE) down -v 2>/dev/null || true
+	@docker stop nginx wordpress mariadb 2>/dev/null || true
+	@docker rm -f nginx wordpress mariadb 2>/dev/null || true
+	@echo "Removing Docker volumes..."
+	@docker volume rm wordpress_data mariadb_data 2>/dev/null || true
+	@echo "Removing networks..."
+	@docker network rm inception 2>/dev/null || true
+	@echo "Cleaning Docker system..."
+	@docker system prune -af --volumes
+	@echo "Removing data directories..."
+	@sudo rm -rf $(DATA_PATH)/wordpress 2>/dev/null || true
+	@sudo rm -rf $(DATA_PATH)/mariadb 2>/dev/null || true
+	@echo "Cleaning Docker volume metadata..."
+	@sudo rm -rf /var/lib/docker/volumes/mariadb_data 2>/dev/null || true
+	@sudo rm -rf /var/lib/docker/volumes/wordpress_data 2>/dev/null || true
+	@echo "Full clean completed!"
 
 re: fclean all
 
 config:
 	@echo "Checking Docker Compose configuration..."
-	$(DOCKER_COMPOSE) -f $(COMPOSE_FILE) --env-file $(ENV_FILE) config | grep -A5 device
+	$(DOCKER_COMPOSE) -f $(COMPOSE_FILE) --env-file $(ENV_FILE) config
 
 test:
 	@echo "Testing services..."
@@ -102,5 +111,5 @@ test:
 	@echo "- Checking WordPress:"
 	@docker exec wordpress wp core version --allow-root 2>/dev/null || echo "WordPress not ready"
 
-.PHONY: all setup up down stop start restart logs logs-nginx logs-wordpress logs-mariadb \
-        status clean clean-volumes clean-data fclean re config test
+.PHONY: all setup volumes up down stop start restart logs logs-nginx logs-wordpress logs-mariadb \
+        status clean fclean re config test
